@@ -124,14 +124,26 @@ public class FlutterOverlayWindowPlugin implements
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         mActivity = binding.getActivity();
-        FlutterEngineGroup enn = new FlutterEngineGroup(context);
-        DartExecutor.DartEntrypoint dEntry = new DartExecutor.DartEntrypoint(
-                FlutterInjector.instance().flutterLoader().findAppBundlePath(),
-                "overlayMain");
-        FlutterEngine engine = enn.createAndRunEngine(context, dEntry);
-        FlutterEngineCache.getInstance().put(OverlayConstants.CACHED_TAG, engine);
+
+        // Check if there is already a cached engine with the desired entry point
+        FlutterEngine cachedEngine = FlutterEngineCache.getInstance().get(OverlayConstants.CACHED_TAG);
+        if (cachedEngine != null) {
+            // Reuse the existing engine
+            mActivity = binding.getActivity();
+        } else {
+            // If no cached engine exists, create a new one
+            FlutterEngineGroup enn = new FlutterEngineGroup(context);
+            DartExecutor.DartEntrypoint dEntry = new DartExecutor.DartEntrypoint(
+                    FlutterInjector.instance().flutterLoader().findAppBundlePath(),
+                    "overlayMain");
+            FlutterEngine engine = enn.createAndRunEngine(context, dEntry);
+            FlutterEngineCache.getInstance().put(OverlayConstants.CACHED_TAG, engine);
+            mActivity = binding.getActivity();
+        }
+
         binding.addActivityResultListener(this);
     }
+
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
