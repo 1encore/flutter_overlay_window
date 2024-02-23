@@ -1,5 +1,8 @@
 package flutter.overlay.window.flutter_overlay_window;
 
+import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK;
+
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -230,6 +233,7 @@ public class OverlayService extends Service implements View.OnTouchListener {
     }
 
 
+    @TargetApi(Build.VERSION_CODES.Q)
     @Override
     public void onCreate() {
         createNotificationChannel();
@@ -250,7 +254,11 @@ public class OverlayService extends Service implements View.OnTouchListener {
                 .setContentIntent(pendingIntent)
                 .setVisibility(WindowSetup.notificationVisibility)
                 .build();
-        startForeground(OverlayConstants.NOTIFICATION_ID, notification);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
+            startForeground(OverlayConstants.NOTIFICATION_ID, notification);
+        } else {
+            startForeground(OverlayConstants.NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+        }
     }
 
     private void createNotificationChannel() {
